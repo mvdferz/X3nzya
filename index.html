@@ -1,128 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Telegram NFT Gifts</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{--bg:#0e0e13;--card:#17171f;--card2:#1f1f2e;--border:rgba(255,255,255,0.06);--text:#ffffff;--muted:#6b7280;--accent:#5b5ef5;--accent2:#c084fc;--gold:#f5c842;--green:#22c55e;--red:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(91,94,245,.13) 0%,transparent 55%),radial-gradient(ellipse 60% 40% at 85% 100%,rgba(192,132,252,.09) 0%,transparent 55%);}
+.wrap{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:0 14px 90px;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;}
+.header-title{font-size:17px;font-weight:800;letter-spacing:-.3px;}
+.header-title span{background:linear-gradient(135deg,#5b5ef5,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stars-badge{display:flex;align-items:center;gap:5px;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.25);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--gold);}
+.tabs{display:flex;gap:3px;background:var(--card);border-radius:14px;padding:4px;margin-bottom:18px;}
+.tab{flex:1;padding:9px 4px;border-radius:10px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;}
+.tab.active{background:var(--card2);color:var(--text);}
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-wrap input{width:100%;padding:11px 14px 11px 40px;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:rgba(91,94,245,.4);}
+.search-wrap input::placeholder{color:var(--muted);}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;}
+.filters{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none;}
+.filters::-webkit-scrollbar{display:none;}
+.filter-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;}
+.gift-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px 12px 12px;cursor:pointer;position:relative;overflow:hidden;transition:transform .18s;}
+.gift-card:active{transform:scale(0.95);}
+.gift-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:var(--cg);opacity:.09;pointer-events:none;}
+.rarity-badge{position:absolute;top:9px;left:9px;font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:3px 7px;border-radius:20px;}
+.rarity-badge.common{background:rgba(107,114,128,.3);color:#9ca3af;}
+.rarity-badge.rare{background:rgba(59,130,246,.25);color:#60a5fa;}
+.rarity-badge.epic{background:rgba(167,139,250,.25);color:#a78bfa;}
+.rarity-badge.legendary{background:rgba(245,200,66,.2);color:var(--gold);}
+.rarity-badge.author{background:rgba(34,197,94,.2);color:#4ade80;}
+.owned-badge{position:absolute;top:9px;right:9px;background:rgba(34,197,94,.2);color:#4ade80;font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;display:none;}
+.gift-visual{width:88px;height:88px;border-radius:50%;margin:18px auto 12px;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--cg);box-shadow:0 6px 24px rgba(0,0,0,.35);position:relative;animation:floatY 3.5s ease-in-out infinite;}
+@keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.gift-name{font-size:13px;font-weight:700;text-align:center;margin-bottom:3px;line-height:1.3;}
+.gift-info{font-size:11px;color:var(--muted);text-align:center;margin-bottom:9px;}
+.gift-price{display:flex;align-items:center;justify-content:center;gap:4px;font-size:14px;font-weight:800;color:var(--gold);margin-bottom:9px;}
+.btn-buy{width:100%;padding:9px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),#4338ca);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:inherit;}
+.btn-buy:active{opacity:.75;}
+.btn-buy.owned-btn{background:linear-gradient(135deg,#059669,#047857);}
+.my-list{display:flex;flex-direction:column;gap:10px;}
+.my-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .18s;position:relative;overflow:hidden;}
+.my-card:active{transform:scale(0.97);}
+.my-card::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.07;pointer-events:none;}
+.my-card-emo{width:62px;height:62px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px;background:var(--cg);box-shadow:0 4px 16px rgba(0,0,0,.3);position:relative;animation:floatY 3s ease-in-out infinite;}
+.my-card-body{flex:1;min-width:0;}
+.my-card-name{font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.my-card-lv{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.progress-bg{height:3px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:5px;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s;}
+.stars-row{display:flex;gap:2px;}
+.star{font-size:11px;opacity:.2;transition:opacity .3s,transform .3s;}
+.star.on{opacity:1;transform:scale(1.15);}
+.btn-up{flex-shrink:0;padding:10px 14px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--gold),#d97706);color:#1a0f00;font-size:11px;font-weight:800;cursor:pointer;transition:opacity .15s;font-family:inherit;text-align:center;line-height:1.3;}
+.btn-up:active{opacity:.8;}
+.btn-up:disabled{background:var(--card2);color:var(--muted);cursor:default;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:28px 28px 0 0;padding:8px 22px 50px;width:100%;max-width:430px;transform:translateY(110%);transition:transform .4s cubic-bezier(.34,1.4,.64,1);}
+.overlay.open .modal{transform:translateY(0);}
+.modal-drag{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;margin:10px auto 20px;}
+.modal-hero{width:120px;height:120px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:58px;position:relative;}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 25px var(--gc,#5b5ef5);}50%{box-shadow:0 0 55px var(--gc,#5b5ef5),0 0 100px var(--gc,#c084fc)33;}}
+.modal-hero{animation:floatY 2.5s ease-in-out infinite,glowPulse 2.5s ease-in-out infinite;}
+.modal-rarity{text-align:center;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.modal-name{font-size:22px;font-weight:800;text-align:center;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:18px;}
+.lv-dots{display:flex;gap:8px;justify-content:center;margin-bottom:18px;}
+.lv-dot{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s;}
+.lv-dot.done{border-color:var(--accent);background:rgba(91,94,245,.15);}
+.lv-dot.current{border-color:var(--gold);background:rgba(245,200,66,.15);animation:dotPulse 1.5s infinite;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,200,66,.4);}50%{box-shadow:0 0 0 6px rgba(245,200,66,0);}}
+.info-row{display:flex;align-items:center;gap:12px;background:var(--card2);border-radius:14px;padding:12px 14px;margin-bottom:10px;}
+.info-swatch{width:42px;height:42px;border-radius:10px;flex-shrink:0;}
+.info-label{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.info-val{font-size:14px;font-weight:700;}
+.cost-row{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+.cost-lbl{font-size:13px;color:var(--muted);}
+.cost-val{font-size:20px;font-weight:800;color:var(--gold);}
+.btn-main{width:100%;padding:17px;border-radius:17px;border:none;background:linear-gradient(135deg,var(--accent),#4338ca);color:#fff;font-size:16px;font-weight:800;cursor:pointer;transition:opacity .15s,transform .1s;font-family:inherit;letter-spacing:-.2px;}
+.btn-main.gold{background:linear-gradient(135deg,var(--gold),#d97706);color:#1a0f00;}
+.btn-main:active{opacity:.85;transform:scale(0.98);}
+.btn-main:disabled{background:var(--card2);color:var(--muted);cursor:default;transform:none;}
+.btn-cancel{width:100%;padding:13px;border-radius:14px;border:1px solid var(--border);background:none;color:var(--muted);font-size:14px;cursor:pointer;margin-top:9px;font-family:inherit;}
+.particle{position:absolute;width:7px;height:7px;border-radius:50%;top:50%;left:50%;pointer-events:none;animation:particleFly .75s ease-out forwards;}
+@keyframes particleFly{0%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0);}}
+.toast{position:fixed;bottom:100px;left:50%;z-index:300;transform:translateX(-50%) translateY(16px);background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:12px 22px;font-size:14px;font-weight:600;white-space:nowrap;opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:rgba(34,197,94,.35);color:var(--green);}
+.toast.err{border-color:rgba(239,68,68,.35);color:var(--red);}
+.empty{text-align:center;padding:60px 0;color:var(--muted);}
+.empty div:first-child{font-size:52px;margin-bottom:12px;opacity:.5;}
+.empty p{font-size:15px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-title">🎁 <span>NFT Gifts</span></div>
+    <div class="stars-badge">⭐ <span id="bal">1 000</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('shop')">🛍 Магазин</button>
+    <button class="tab" onclick="switchTab('my')">🎀 Мои</button>
+    <button class="tab" onclick="switchTab('top')">🏆 Редкие</button>
+    <button class="tab" onclick="switchTab('auth')">⭐ Авторы</button>
+  </div>
+  <div id="tab-shop">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Поиск подарка…" oninput="filterGifts(this.value)">
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">Все</button>
+      <button class="filter-btn" onclick="setFilter('common',this)">Common</button>
+      <button class="filter-btn" onclick="setFilter('rare',this)">Rare</button>
+      <button class="filter-btn" onclick="setFilter('epic',this)">Epic</button>
+      <button class="filter-btn" onclick="setFilter('legendary',this)">Legendary</button>
+    </div>
+    <div class="grid" id="shop-grid"></div>
+  </div>
+  <div id="tab-my" style="display:none"><div class="my-list" id="my-list"></div></div>
+  <div id="tab-top" style="display:none"><div class="grid" id="top-grid"></div></div>
+  <div id="tab-auth" style="display:none"><div class="grid" id="auth-grid"></div></div>
+</div>
 
-import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-import json
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-hero" id="mhero"></div>
+    <div class="modal-rarity" id="mrarity"></div>
+    <div class="modal-name" id="mname"></div>
+    <div class="modal-sub" id="msub"></div>
+    <div class="lv-dots" id="mdots"></div>
+    <div class="info-row">
+      <div class="info-swatch" id="mswatch"></div>
+      <div><div class="info-label">Фон подарка</div><div class="info-val" id="mbgname"></div></div>
+    </div>
+    <div class="cost-row">
+      <span class="cost-lbl" id="mclbl">Стоимость</span>
+      <span class="cost-val" id="mcost"></span>
+    </div>
+    <button class="btn-main" id="mbtn" onclick="doAction()"></button>
+    <button class="btn-cancel" onclick="closeOverlay()">Отмена</button>
+  </div>
+</div>
 
-logging.basicConfig(level=logging.INFO)
+<div class="toast" id="toast"></div>
 
-TOKEN = "8389123447:AAHu-qA4UnG9qmZ4u6QtKIt4T2QPB4EkVBM"
-ADMIN_ID = 8013841426
+<script>
+const BG={
+  'Amber':['#d9b245','#bc8e31'],'Aquamarine':['#60b196','#4cacac'],'Azure Blue':['#5cb0ca','#4b96b4'],
+  'Cyberpunk':['#858df2','#866ddc'],'Electric Indigo':['#a67ff2','#7169df'],'Electric Purple':['#c970c7','#a465d0'],
+  'Emerald':['#77c585','#51ab76'],'Fandango':['#e189b5','#b66798'],'Fire Engine':['#ef5e4f','#d0434b'],
+  'French Violet':['#c160e6','#9f53dc'],'Grape':['#9c73c0','#8258a9'],'Jade Green':['#54c39b','#43a683'],
+  'Lavender':['#b688e3','#9766c8'],'Midnight Blue':['#5b6884','#414d65'],'Mystic Pearl':['#d08a6d','#b9666e'],
+  'Navy Blue':['#6b9ddc','#627bce'],'Neon Blue':['#7494f8','#6c71ea'],'Old Gold':['#b58c38','#9e7229'],
+  'Pure Gold':['#cbaa40','#a78936'],'Sapphire':['#58a3c8','#5485c4'],'Turquoise':['#5dbeb6','#469f9a'],
+  'Camo Green':['#74934c','#5e7c45'],'Carmine':['#df574a','#b94240'],'Pacific Cyan':['#59bca6','#459fb5'],
+  'Raspberry':['#de7a85','#c36381'],'Cobalt Blue':['#6087ce','#566dbf'],'Caramel':['#cf9832','#be7f31'],
+  'Gunmetal':['#4b5c62','#36434b'],'Mint Green':['#7ecb82','#56ab66'],'Tomato':['#e6783e','#d85b40'],
+};
+function grad(n){const c=BG[n]||['#7c6af5','#5b4fd4'];return `radial-gradient(circle,${c[0]} 0%,${c[1]} 100%)`;}
 
-# ✅ ВАШ VERCEL URL
-WEB_APP_URL = "https://giftbalenca.vercel.app"
+const GIFTS=[
+  // LEGENDARY
+  {id:'heart_locket',name:'Heart Locket',emoji:'💝',supply:1973,price:2000,rarity:'legendary',bg:'Pure Gold',desc:'Самый редкий подарок Telegram'},
+  {id:'plush_pepe',name:'Plush Pepe',emoji:'🐸',supply:2861,price:1500,rarity:'legendary',bg:'Emerald',desc:'Легендарный плюшевый Пепе'},
+  {id:'heroic_helmet',name:'Heroic Helmet',emoji:'⚔️',supply:3794,price:1200,rarity:'legendary',bg:'Midnight Blue',desc:'Шлем героя'},
+  {id:'mighty_arm',name:'Mighty Arm',emoji:'💪',supply:4123,price:1000,rarity:'legendary',bg:'Fire Engine',desc:'Могучая рука'},
+  {id:'ion_gem',name:'Ion Gem',emoji:'💎',supply:4692,price:900,rarity:'legendary',bg:'Cyberpunk',desc:'Ионный кристалл'},
+  {id:'durovs_cap',name:"Durov's Cap",emoji:'🧢',supply:4774,price:850,rarity:'legendary',bg:'Azure Blue',desc:'Легендарная кепка Дурова'},
+  {id:'nail_bracelet',name:'Nail Bracelet',emoji:'📿',supply:4818,price:800,rarity:'legendary',bg:'Electric Indigo',desc:'Браслет из гвоздей'},
+  {id:'perfume_bottle',name:'Perfume Bottle',emoji:'🌸',supply:4848,price:750,rarity:'legendary',bg:'Lavender',desc:'Флакон духов'},
+  {id:'magic_potion',name:'Magic Potion',emoji:'🧪',supply:4871,price:700,rarity:'legendary',bg:'French Violet',desc:'Волшебное зелье'},
+  {id:'mini_oscar',name:'Mini Oscar',emoji:'🏆',supply:5614,price:650,rarity:'legendary',bg:'Amber',desc:'Мини Оскар'},
+  {id:'astral_shard',name:'Astral Shard',emoji:'🔮',supply:6196,price:600,rarity:'legendary',bg:'Electric Purple',desc:'Астральный осколок'},
+  {id:'artisan_brick',name:'Artisan Brick',emoji:'🧱',supply:6852,price:550,rarity:'legendary',bg:'Old Gold',desc:'Кирпич мастера'},
+  {id:'gem_signet',name:'Gem Signet',emoji:'💍',supply:6962,price:500,rarity:'legendary',bg:'Sapphire',desc:'Перстень с камнем'},
+  {id:'precious_peach',name:'Precious Peach',emoji:'🍑',supply:3160,price:1800,rarity:'legendary',bg:'Fandango',desc:'Драгоценный персик'},
+  // EPIC
+  {id:'sharp_tongue',name:'Sharp Tongue',emoji:'👅',supply:8546,price:350,rarity:'epic',bg:'Carmine',desc:'Острый язык'},
+  {id:'loot_bag',name:'Loot Bag',emoji:'💰',supply:14489,price:300,rarity:'epic',bg:'Old Gold',desc:'Мешок с лутом'},
+  {id:'electric_skull',name:'Electric Skull',emoji:'💀',supply:9407,price:380,rarity:'epic',bg:'Cyberpunk',desc:'Электрический череп'},
+  {id:'bonded_ring',name:'Bonded Ring',emoji:'💍',supply:8130,price:420,rarity:'epic',bg:'Neon Blue',desc:'Кольцо связи'},
+  {id:'kissed_frog',name:'Kissed Frog',emoji:'🐸',supply:14278,price:280,rarity:'epic',bg:'Emerald',desc:'Целованная лягушка'},
+  {id:'neko_helmet',name:'Neko Helmet',emoji:'🐱',supply:16149,price:260,rarity:'epic',bg:'Lavender',desc:'Шлем некомана'},
+  {id:'scared_cat',name:'Scared Cat',emoji:'😱',supply:19289,price:240,rarity:'epic',bg:'Raspberry',desc:'Испуганный кот'},
+  {id:'swiss_watch',name:'Swiss Watch',emoji:'⌚',supply:29323,price:220,rarity:'epic',bg:'Amber',desc:'Швейцарские часы'},
+  {id:'crystal_ball',name:'Crystal Ball',emoji:'🔮',supply:27732,price:200,rarity:'epic',bg:'Grape',desc:'Хрустальный шар'},
+  {id:'voodoo_doll',name:'Voodoo Doll',emoji:'🪆',supply:27620,price:190,rarity:'epic',bg:'Fire Engine',desc:'Кукла вуду'},
+  {id:'diamond_ring',name:'Diamond Ring',emoji:'💎',supply:32924,price:180,rarity:'epic',bg:'Neon Blue',desc:'Бриллиантовое кольцо'},
+  {id:'signet_ring',name:'Signet Ring',emoji:'💍',supply:18499,price:170,rarity:'epic',bg:'Cobalt Blue',desc:'Печатка'},
+  // RARE
+  {id:'skull_flower',name:'Skull Flower',emoji:'💀',supply:24126,price:85,rarity:'rare',bg:'Mystic Pearl',desc:'Цветок с черепом'},
+  {id:'cupid_charm',name:'Cupid Charm',emoji:'💘',supply:33112,price:75,rarity:'rare',bg:'Aquamarine',desc:'Амулет Купидона'},
+  {id:'love_candle',name:'Love Candle',emoji:'🕯️',supply:30296,price:70,rarity:'rare',bg:'Fandango',desc:'Свеча любви'},
+  {id:'love_potion',name:'Love Potion',emoji:'💜',supply:30412,price:70,rarity:'rare',bg:'Lavender',desc:'Зелье любви'},
+  {id:'vintage_cigar',name:'Vintage Cigar',emoji:'🚬',supply:31024,price:65,rarity:'rare',bg:'Old Gold',desc:'Винтажная сигара'},
+  {id:'eternal_rose',name:'Eternal Rose',emoji:'🌹',supply:37640,price:60,rarity:'rare',bg:'Carmine',desc:'Вечная роза'},
+  {id:'top_hat',name:'Top Hat',emoji:'🎩',supply:35099,price:65,rarity:'rare',bg:'Midnight Blue',desc:'Цилиндр'},
+  {id:'trapped_heart',name:'Trapped Heart',emoji:'💔',supply:26407,price:80,rarity:'rare',bg:'Fire Engine',desc:'Пойманное сердце'},
+  {id:'ionic_dryer',name:'Ionic Dryer',emoji:'💨',supply:25719,price:85,rarity:'rare',bg:'Azure Blue',desc:'Ионный фен'},
+  {id:'flying_broom',name:'Flying Broom',emoji:'🧹',supply:25916,price:75,rarity:'rare',bg:'Camo Green',desc:'Летающая метла'},
+  {id:'mad_pumpkin',name:'Mad Pumpkin',emoji:'🎃',supply:22199,price:90,rarity:'rare',bg:'Tomato',desc:'Безумная тыква'},
+  {id:'sleigh_bell',name:'Sleigh Bell',emoji:'🔔',supply:28000,price:70,rarity:'rare',bg:'Amber',desc:'Колокольчик саней'},
+  {id:'toy_bear',name:'Toy Bear',emoji:'🧸',supply:57724,price:50,rarity:'rare',bg:'Caramel',desc:'Плюшевый мишка'},
+  {id:'eternal_candle',name:'Eternal Candle',emoji:'🕯️',supply:46590,price:55,rarity:'rare',bg:'Old Gold',desc:'Вечная свеча'},
+  {id:'moon_pendant',name:'Moon Pendant',emoji:'🌙',supply:111080,price:40,rarity:'rare',bg:'Midnight Blue',desc:'Лунный кулон'},
+  // COMMON
+  {id:'lol_pop',name:'Lol Pop',emoji:'🍭',supply:468745,price:10,rarity:'common',bg:'Electric Purple',desc:'Карамельный леденец'},
+  {id:'instant_ramen',name:'Instant Ramen',emoji:'🍜',supply:457382,price:10,rarity:'common',bg:'Amber',desc:'Быстрая лапша'},
+  {id:'desk_calendar',name:'Desk Calendar',emoji:'📅',supply:374077,price:8,rarity:'common',bg:'Azure Blue',desc:'Настольный календарь'},
+  {id:'xmas_stocking',name:'Xmas Stocking',emoji:'🧦',supply:334632,price:9,rarity:'common',bg:'Carmine',desc:'Рождественский носок'},
+  {id:'candy_cane',name:'Candy Cane',emoji:'🍬',supply:320622,price:8,rarity:'common',bg:'Carmine',desc:'Леденцовая трость'},
+  {id:'bday_candle',name:'B-Day Candle',emoji:'🎂',supply:308639,price:8,rarity:'common',bg:'Lavender',desc:'Свеча на торте'},
+  {id:'pet_snake',name:'Pet Snake',emoji:'🐍',supply:279106,price:15,rarity:'common',bg:'Emerald',desc:'Домашняя змея'},
+  {id:'snake_box',name:'Snake Box',emoji:'📦',supply:273898,price:12,rarity:'common',bg:'Jade Green',desc:'Коробка со змеёй'},
+  {id:'cookie_heart',name:'Cookie Heart',emoji:'🍪',supply:264486,price:10,rarity:'common',bg:'Aquamarine',desc:'Печенье-сердечко'},
+  {id:'clover_pin',name:'Clover Pin',emoji:'🍀',supply:270970,price:12,rarity:'common',bg:'Mint Green',desc:'Брошь-клевер'},
+  {id:'mousse_cake',name:'Mousse Cake',emoji:'🍰',supply:230505,price:12,rarity:'common',bg:'Fandango',desc:'Торт-мусс'},
+  {id:'spring_basket',name:'Spring Basket',emoji:'🧺',supply:231311,price:12,rarity:'common',bg:'Emerald',desc:'Весенняя корзинка'},
+  {id:'fresh_socks',name:'Fresh Socks',emoji:'🧦',supply:200509,price:8,rarity:'common',bg:'Azure Blue',desc:'Свежие носки'},
+  {id:'jester_hat',name:'Jester Hat',emoji:'🎭',supply:190222,price:12,rarity:'common',bg:'Carmine',desc:'Шляпа шута'},
+  {id:'ginger_cookie',name:'Ginger Cookie',emoji:'🍪',supply:188888,price:8,rarity:'common',bg:'Amber',desc:'Имбирное печенье'},
+  {id:'jack_box',name:'Jack-in-the-Box',emoji:'🎪',supply:97345,price:15,rarity:'common',bg:'Fire Engine',desc:'Чёртик из коробки'},
+  {id:'witch_hat',name:'Witch Hat',emoji:'🧙',supply:88480,price:18,rarity:'common',bg:'Grape',desc:'Шляпа ведьмы'},
+  {id:'santa_hat',name:'Santa Hat',emoji:'🎅',supply:89034,price:18,rarity:'common',bg:'Carmine',desc:'Шапка Санты'},
+  {id:'faith_amulet',name:'Faith Amulet',emoji:'☯️',supply:172784,price:12,rarity:'common',bg:'Cobalt Blue',desc:'Амулет веры'},
+];
 
-users = {}
+const AUTHORS=[
+  {id:'snoop_dogg',name:'Snoop Dogg',emoji:'🎤',supply:595358,price:50,rarity:'author',bg:'Pacific Cyan',author:'@snoopdogg',desc:'Коллекционный Snoop Dogg'},
+  {id:'swag_bag',name:'Swag Bag',emoji:'🛍️',supply:239091,price:30,rarity:'author',bg:'Pacific Cyan',author:'@snoopdogg',desc:'Сумка со свэгом'},
+  {id:'snoop_cigar',name:'Snoop Cigar',emoji:'🚬',supply:119806,price:60,rarity:'author',bg:'Gunmetal',author:'@snoopdogg',desc:'Сигара Snoop'},
+  {id:'low_rider',name:'Low Rider',emoji:'🚗',supply:23991,price:200,rarity:'author',bg:'Cobalt Blue',author:'@snoopdogg',desc:'Лоурайдер'},
+  {id:'westside_sign',name:'Westside Sign',emoji:'🤙',supply:11995,price:400,rarity:'author',bg:'Old Gold',author:'@snoopdogg',desc:'Знак West Side — ультраредкий!'},
+  {id:'khabib_papakha',name:"Khabib's Papakha",emoji:'🧢',supply:29000,price:150,rarity:'author',bg:'Emerald',author:'@khabib_nurmagomedov',desc:'Папаха Хабиба'},
+  {id:'ufc_strike',name:'UFC Strike',emoji:'🥊',supply:60000,price:80,rarity:'author',bg:'Carmine',author:'@ufc',desc:'Удар UFC'},
+];
 
-GIFTS = {
-    "heart_locket": {
-        "name": "Heart Locket",
-        "emoji": "❤️",
-        "price": 100,
-        "colors": ["#e189b5", "#b66798"],
-        "rarity": 5
-    },
-    "plush_pepe": {
-        "name": "Plush Pepe",
-        "emoji": "🐸",
-        "price": 150,
-        "colors": ["#77c585", "#51ab76"],
-        "rarity": 3
-    },
-    "moon_pendant": {
-        "name": "Moon Pendant",
-        "emoji": "🌙",
-        "price": 50,
-        "colors": ["#5cb0ca", "#4b96b4"],
-        "rarity": 1
-    },
-    "heroic_helmet": {
-        "name": "Heroic Helmet",
-        "emoji": "⚔️",
-        "price": 200,
-        "colors": ["#58a3c8", "#5485c4"],
-        "rarity": 4
-    }
+// STATE
+let balance=1000, myGifts=[], modalState=null, activeTab='shop', shopFilter='all', searchQ='';
+
+const UP_COST=[0,50,120,300,800,2000];
+const UP_BG=['','Neon Blue','Electric Indigo','Electric Purple','French Violet','Pure Gold'];
+const RARITY_ORDER=['legendary','epic','rare','common','author'];
+const RARITY_COL={legendary:'#f5c842',epic:'#a78bfa',rare:'#60a5fa',common:'#9ca3af',author:'#4ade80'};
+const LV_EMO=['🎁','⭐','⭐⭐','🌟🌟🌟','✨✨✨✨','🔥🔥🔥🔥🔥'];
+const LV_LBL=['Базовый','Улучшен I','Улучшен II','Улучшен III','Элитный','ЛЕГЕНДАРНЫЙ 👑'];
+
+function fmtN(n){return Number(n).toLocaleString('ru');}
+function updBal(){document.getElementById('bal').textContent=fmtN(balance);}
+
+function effBg(gift,lv){return lv===0?gift.bg:(UP_BG[lv]||gift.bg);}
+
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast show ${type}`;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='toast',2800);
 }
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    if user_id not in users:
-        users[user_id] = {
-            "balance": 5000,
-            "gifts": {},
-            "username": update.effective_user.username or "User"
-        }
-    
-    keyboard = [
-        [InlineKeyboardButton(
-            "🎁 Mini App - Магазин подарков",
-            web_app=WebAppInfo(url=WEB_APP_URL)
-        )],
-        [InlineKeyboardButton("💰 Баланс", callback_data="balance")],
-        [InlineKeyboardButton("💎 Мои подарки", callback_data="my_gifts")]
-    ]
-    
-    await update.message.reply_html(
-        f"<b>👋 Привет, {update.effective_user.first_name}!</b>\n\n"
-        f"💰 Баланс: <code>{users[user_id]['balance']}</code> монет\n\n"
-        f"Нажми на кнопку ниже чтобы открыть магазин подарков с анимациями!",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+function isOwned(id){return myGifts.some(m=>m.giftId===id);}
+function allGifts(){return[...GIFTS,...AUTHORS];}
 
-async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
-    await query.answer(f"💰 Ваш баланс: {users[user_id]['balance']} монет", show_alert=True)
+// ── RENDER CARDS ──
+function giftCard(g,src){
+  const bg=grad(g.bg),c=BG[g.bg]||['#7c6af5','#5b4fd4'];
+  const col=RARITY_COL[g.rarity]||'#9ca3af';
+  const owned=isOwned(g.id);
+  const authorLine=g.author?`<div style="font-size:10px;color:#4ade80;text-align:center;margin-bottom:3px">${g.author}</div>`:'';
+  return `<div class="gift-card" style="--cg:${bg}" onclick="openBuy('${g.id}')">
+    <div class="rarity-badge ${g.rarity}" style="color:${col}">${cap(g.rarity)}</div>
+    ${owned?'<div class="owned-badge" style="display:block">Есть</div>':''}
+    <div class="gift-visual" style="background:${bg};box-shadow:0 6px 24px ${c[0]}55">${g.emoji}</div>
+    <div class="gift-name">${g.name}</div>
+    ${authorLine}
+    <div class="gift-info">${fmtN(g.supply)} шт.</div>
+    <div class="gift-price">⭐ ${g.price}</div>
+    <button class="btn-buy ${owned?'owned-btn':''}" onclick="event.stopPropagation();quickBuy('${g.id}')">
+      ${owned?'Купить ещё':'Купить'}
+    </button>
+  </div>`;
+}
 
-async def my_gifts(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
-    
-    text = "<b>💎 Ваши подарки:</b>\n\n"
-    if not users[user_id]["gifts"]:
-        text += "У вас нет подарков 😢\nКупите их в магазине!"
-    else:
-        for gift_id, info in users[user_id]["gifts"].items():
-            gift = GIFTS[gift_id]
-            level = info["level"]
-            count = info["count"]
-            
-            level_names = ["Обычный", "Редкий", "Эпический", "Легендарный", "Мифический"]
-            level_name = level_names[min(level, 4)]
-            
-            text += f"{gift['emoji']} <b>{gift['name']}</b>\n"
-            text += f"  📊 Уровень: {level_name} ({level})\n"
-            text += f"  🔢 Кол-во: {count} шт.\n\n"
-    
-    keyboard = [[InlineKeyboardButton("⬅️ Назад", callback_data="back")]]
-    await query.edit_message_text(text, parse_mode="HTML", reply_markup=InlineKeyboardMarkup(keyboard))
+function renderShop(){
+  let list=[...GIFTS];
+  if(shopFilter!=='all') list=list.filter(g=>g.rarity===shopFilter);
+  if(searchQ) list=list.filter(g=>g.name.toLowerCase().includes(searchQ));
+  list.sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity));
+  document.getElementById('shop-grid').innerHTML=list.map(g=>giftCard(g,'shop')).join('');
+}
 
-async def back(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
-    
-    keyboard = [
-        [InlineKeyboardButton(
-            "🎁 Mini App - Магазин подарков",
-            web_app=WebAppInfo(url=WEB_APP_URL)
-        )],
-        [InlineKeyboardButton("💰 Баланс", callback_data="balance")],
-        [InlineKeyboardButton("💎 Мои подарки", callback_data="my_gifts")]
-    ]
-    
-    await query.edit_message_text(
-        f"💰 Баланс: {users[user_id]['balance']} монет",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+function renderTop(){
+  const list=[...GIFTS].filter(g=>['legendary','epic'].includes(g.rarity)).sort((a,b)=>a.supply-b.supply);
+  document.getElementById('top-grid').innerHTML=list.map(g=>giftCard(g,'top')).join('');
+}
 
-if __name__ == "__main__":
-    app = Application.builder().token(TOKEN).build()
-    
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(balance, pattern="^balance$"))
-    app.add_handler(CallbackQueryHandler(my_gifts, pattern="^my_gifts$"))
-    app.add_handler(CallbackQueryHandler(back, pattern="^back$"))
-    
-    print("🤖 Бот запущен с URL: https://giftbalenca.vercel.app")
-    app.run_polling()
+function renderAuth(){
+  document.getElementById('auth-grid').innerHTML=AUTHORS.map(g=>giftCard(g,'auth')).join('');
+}
+
+function renderMy(){
+  const el=document.getElementById('my-list');
+  if(!myGifts.length){
+    el.innerHTML='<div class="empty"><div>🎁</div><p>У вас пока нет подарков.<br>Купите в магазине!</p></div>';
+    return;
+  }
+  el.innerHTML=myGifts.map((mg,idx)=>{
+    const gift=allGifts().find(g=>g.id===mg.giftId); if(!gift) return '';
+    const lv=mg.level, bgn=effBg(gift,lv), bg=grad(bgn), c=BG[bgn]||['#7c6af5','#5b4fd4'];
+    const maxed=lv>=5, nxt=maxed?0:UP_COST[lv+1], canUp=!maxed&&balance>=nxt;
+    const stars=Array.from({length:5},(_,i)=>`<span class="star ${i<lv?'on':''}">⭐</span>`).join('');
+    return `<div class="my-card" style="--cg:${bg}" onclick="openUpgrade(${idx})">
+      <div class="my-card-emo" style="background:${bg};box-shadow:0 4px 20px ${c[0]}55">
+        ${gift.emoji}${lv>=3?'<span style="position:absolute;font-size:12px;top:0;right:0">✨</span>':''}
+      </div>
+      <div class="my-card-body">
+        <div class="my-card-name">${gift.name}</div>
+        <div class="my-card-lv">${LV_LBL[lv]} · Ур.${lv}/5</div>
+        <div class="progress-bg"><div class="progress-fill" style="width:${lv/5*100}%"></div></div>
+        <div class="stars-row">${stars}</div>
+      </div>
+      <button class="btn-up" onclick="event.stopPropagation();quickUpgrade(${idx})" ${maxed?'disabled':''}>
+        ${maxed?'👑 MAX':`⬆ ${nxt}⭐`}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+// ── TABS ──
+function switchTab(tab){
+  activeTab=tab;
+  ['shop','my','top','auth'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['shop','my','top','auth'][i]===tab);
+  });
+  if(tab==='my') renderMy();
+  if(tab==='top') renderTop();
+  if(tab==='auth') renderAuth();
+}
+
+// ── FILTER ──
+function setFilter(f,btn){
+  shopFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderShop();
+}
+function filterGifts(q){searchQ=q.toLowerCase(); renderShop();}
+
+// ── MODAL ──
+function openBuy(giftId){
+  const gift=allGifts().find(g=>g.id===giftId); if(!gift) return;
+  modalState={type:'buy',gift};
+  const bg=grad(gift.bg),c=BG[gift.bg]||['#7c6af5','#5b4fd4'];
+  const hero=document.getElementById('mhero');
+  hero.style.background=bg; hero.style.setProperty('--gc',c[0]+'aa');
+  hero.innerHTML=`<span style="font-size:58px">${gift.emoji}</span>`;
+  document.getElementById('mrarity').textContent=cap(gift.rarity);
+  document.getElementById('mrarity').style.color=RARITY_COL[gift.rarity]||'#4ade80';
+  document.getElementById('mname').textContent=gift.name;
+  document.getElementById('msub').textContent=`${fmtN(gift.supply)} шт. · ${gift.desc}`;
+  // lv dots
+  document.getElementById('mdots').innerHTML=Array.from({length:6},(_,i)=>{
+    return `<div class="lv-dot ${i===0?'current':''}">${LV_EMO[i]||i}</div>`;
+  }).join('');
+  // bg info
+  const swatch=document.getElementById('mswatch');
+  swatch.style.background=bg;
+  document.getElementById('mbgname').textContent=gift.bg;
+  document.getElementById('mclbl').textContent='Стоимость';
+  document.getElementById('mcost').textContent=`⭐ ${gift.price}`;
+  const btn=document.getElementById('mbtn');
+  btn.textContent='🛍 Купить подарок'; btn.className='btn-main'; btn.disabled=balance<gift.price;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function openUpgrade(idx){
+  const mg=myGifts[idx];
+  const gift=allGifts().find(g=>g.id===mg.giftId); if(!gift) return;
+  modalState={type:'upgrade',gift,myIdx:idx};
+  const lv=mg.level, maxed=lv>=5, nlv=Math.min(lv+1,5);
+  const bgn=effBg(gift,lv), bg=grad(bgn), c=BG[bgn]||['#7c6af5','#5b4fd4'];
+  const hero=document.getElementById('mhero');
+  hero.style.background=bg; hero.style.setProperty('--gc',c[0]+'aa');
+  hero.innerHTML=`<span style="font-size:58px">${gift.emoji}${lv>=3?'✨':''}</span>`;
+  document.getElementById('mrarity').textContent=LV_LBL[lv];
+  document.getElementById('mrarity').style.color=maxed?'#f5c842':'#a78bfa';
+  document.getElementById('mname').textContent=gift.name;
+  document.getElementById('msub').textContent=maxed?'Максимальный уровень!':`Текущий уровень: ${lv}/5`;
+  document.getElementById('mdots').innerHTML=Array.from({length:6},(_,i)=>{
+    let cls=i<lv?'done':(i===lv?'current':'');
+    return `<div class="lv-dot ${cls}">${LV_EMO[i]||i}</div>`;
+  }).join('');
+  const nextBg=grad(maxed?bgn:effBg(gift,nlv));
+  const nextBgN=maxed?bgn:effBg(gift,nlv);
+  document.getElementById('mswatch').style.background=nextBg;
+  document.getElementById('mbgname').textContent=maxed?'Максимум достигнут':nextBgN+' (после улучшения)';
+  const cost=maxed?0:UP_COST[nlv];
+  document.getElementById('mclbl').textContent=maxed?'Статус':'Стоимость улучшения';
+  document.getElementById('mcost').textContent=maxed?'👑 MAX':`⭐ ${cost}`;
+  const btn=document.getElementById('mbtn');
+  btn.className='btn-main gold';
+  btn.textContent=maxed?'👑 Максимальный уровень':`✨ Улучшить → Уровень ${nlv}`;
+  btn.disabled=maxed||balance<cost;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay(){document.getElementById('overlay').classList.remove('open'); modalState=null;}
+function overlayClick(e){if(e.target===document.getElementById('overlay')) closeOverlay();}
+
+function doAction(){
+  if(!modalState) return;
+  if(modalState.type==='buy') doBuy(modalState.gift.id);
+  else doUpgrade(modalState.myIdx);
+  closeOverlay();
+}
+
+// ── BUY / UPGRADE ──
+function doBuy(giftId){
+  const gift=allGifts().find(g=>g.id===giftId); if(!gift) return;
+  if(balance<gift.price){toast('Недостаточно звёзд ⭐','err'); return;}
+  balance-=gift.price; updBal();
+  myGifts.unshift({uid:Date.now(),giftId:gift.id,level:0});
+  toast(`✅ Куплен: ${gift.name}!`);
+  sendData('bought',gift.name,0);
+  renderShop(); renderTop(); renderAuth();
+}
+
+function quickBuy(giftId){doBuy(giftId);}
+
+function doUpgrade(idx){
+  const mg=myGifts[idx];
+  const gift=allGifts().find(g=>g.id===mg.giftId);
+  if(!gift||mg.level>=5) return;
+  const cost=UP_COST[mg.level+1];
+  if(balance<cost){toast('Недостаточно звёзд ⭐','err'); return;}
+  balance-=cost; updBal(); mg.level++;
+  toast(`✨ ${gift.name} → Уровень ${mg.level}!${mg.level===5?' 👑 МАКСИМУМ!':''}`);
+  sendData('upgraded',gift.name,mg.level);
+  burst(); renderMy();
+}
+
+function quickUpgrade(idx){doUpgrade(idx);}
+
+// ── PARTICLES ──
+function burst(){
+  const wrap=document.getElementById('mhero');
+  if(!wrap) return;
+  const cols=['#f5c842','#a78bfa','#c084fc','#22c55e','#f97316','#60a5fa'];
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const a=(i/14)*Math.PI*2, d=55+Math.random()*50;
+    p.style.background=cols[i%cols.length];
+    p.style.setProperty('--tx',Math.cos(a)*d+'px');
+    p.style.setProperty('--ty',Math.sin(a)*d+'px');
+    p.style.animationDelay=Math.random()*.15+'s';
+    wrap.appendChild(p); setTimeout(()=>p.remove(),900);
+  }
+}
+
+// ── TELEGRAM ──
+function sendData(action,gift,level){
+  try{window.Telegram?.WebApp?.sendData(JSON.stringify({action,gift,level}));}catch(e){}
+}
+
+function initTg(){
+  if(window.Telegram?.WebApp){
+    Telegram.WebApp.ready(); Telegram.WebApp.expand();
+    const p=new URLSearchParams(location.search);
+    const t=p.get('tab');
+    if(t&&['shop','my','top','auth'].includes(t)) switchTab(t);
+  }
+}
+
+// ── INIT ──
+updBal(); renderShop(); initTg();
+</script>
+</body>
+</html>
