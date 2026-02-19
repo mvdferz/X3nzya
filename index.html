@@ -1,1 +1,128 @@
 
+import logging
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import json
+
+logging.basicConfig(level=logging.INFO)
+
+TOKEN = "8389123447:AAHu-qA4UnG9qmZ4u6QtKIt4T2QPB4EkVBM"
+ADMIN_ID = 8013841426
+
+# ✅ ВАШ VERCEL URL
+WEB_APP_URL = "https://giftbalenca.vercel.app"
+
+users = {}
+
+GIFTS = {
+    "heart_locket": {
+        "name": "Heart Locket",
+        "emoji": "❤️",
+        "price": 100,
+        "colors": ["#e189b5", "#b66798"],
+        "rarity": 5
+    },
+    "plush_pepe": {
+        "name": "Plush Pepe",
+        "emoji": "🐸",
+        "price": 150,
+        "colors": ["#77c585", "#51ab76"],
+        "rarity": 3
+    },
+    "moon_pendant": {
+        "name": "Moon Pendant",
+        "emoji": "🌙",
+        "price": 50,
+        "colors": ["#5cb0ca", "#4b96b4"],
+        "rarity": 1
+    },
+    "heroic_helmet": {
+        "name": "Heroic Helmet",
+        "emoji": "⚔️",
+        "price": 200,
+        "colors": ["#58a3c8", "#5485c4"],
+        "rarity": 4
+    }
+}
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in users:
+        users[user_id] = {
+            "balance": 5000,
+            "gifts": {},
+            "username": update.effective_user.username or "User"
+        }
+    
+    keyboard = [
+        [InlineKeyboardButton(
+            "🎁 Mini App - Магазин подарков",
+            web_app=WebAppInfo(url=WEB_APP_URL)
+        )],
+        [InlineKeyboardButton("💰 Баланс", callback_data="balance")],
+        [InlineKeyboardButton("💎 Мои подарки", callback_data="my_gifts")]
+    ]
+    
+    await update.message.reply_html(
+        f"<b>👋 Привет, {update.effective_user.first_name}!</b>\n\n"
+        f"💰 Баланс: <code>{users[user_id]['balance']}</code> монет\n\n"
+        f"Нажми на кнопку ниже чтобы открыть магазин подарков с анимациями!",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    await query.answer(f"💰 Ваш баланс: {users[user_id]['balance']} монет", show_alert=True)
+
+async def my_gifts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    text = "<b>💎 Ваши подарки:</b>\n\n"
+    if not users[user_id]["gifts"]:
+        text += "У вас нет подарков 😢\nКупите их в магазине!"
+    else:
+        for gift_id, info in users[user_id]["gifts"].items():
+            gift = GIFTS[gift_id]
+            level = info["level"]
+            count = info["count"]
+            
+            level_names = ["Обычный", "Редкий", "Эпический", "Легендарный", "Мифический"]
+            level_name = level_names[min(level, 4)]
+            
+            text += f"{gift['emoji']} <b>{gift['name']}</b>\n"
+            text += f"  📊 Уровень: {level_name} ({level})\n"
+            text += f"  🔢 Кол-во: {count} шт.\n\n"
+    
+    keyboard = [[InlineKeyboardButton("⬅️ Назад", callback_data="back")]]
+    await query.edit_message_text(text, parse_mode="HTML", reply_markup=InlineKeyboardMarkup(keyboard))
+
+async def back(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    keyboard = [
+        [InlineKeyboardButton(
+            "🎁 Mini App - Магазин подарков",
+            web_app=WebAppInfo(url=WEB_APP_URL)
+        )],
+        [InlineKeyboardButton("💰 Баланс", callback_data="balance")],
+        [InlineKeyboardButton("💎 Мои подарки", callback_data="my_gifts")]
+    ]
+    
+    await query.edit_message_text(
+        f"💰 Баланс: {users[user_id]['balance']} монет",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+if __name__ == "__main__":
+    app = Application.builder().token(TOKEN).build()
+    
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(balance, pattern="^balance$"))
+    app.add_handler(CallbackQueryHandler(my_gifts, pattern="^my_gifts$"))
+    app.add_handler(CallbackQueryHandler(back, pattern="^back$"))
+    
+    print("🤖 Бот запущен с URL: https://giftbalenca.vercel.app")
+    app.run_polling()
